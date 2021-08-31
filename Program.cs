@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Linq;
 
 namespace ConsoleApp1
 {
@@ -10,15 +9,30 @@ namespace ConsoleApp1
     {
         private static List<Person> people = new List<Person>();
         private static List<Organization> organization = new List<Organization>();
-        private static string path = "C:\\Users\\tn_kz\\source\\repos\\ConsoleApp1\\textFile.txt";
+        private static string personsPath = "C:\\Users\\tn_kz\\source\\repos\\ConsoleApp1\\personsFile.txt";
+        private static string orgsPath = "C:\\Users\\tn_kz\\source\\repos\\ConsoleApp1\\orgsFile.txt";
+
         private static BinaryFormatter formatter = new BinaryFormatter();
         static void Main(string[] args)
         {
+            FileStream fs = new FileStream(personsPath, FileMode.Open);
+            if (fs.Length > 0)
+            {
+                people = formatter.Deserialize(fs) as List<Person>;
+                fs.Close();
+            }
+            FileStream fs2 = new FileStream(orgsPath,FileMode.Open);
+            if (fs2.Length > 0)
+            {
+                organization = formatter.Deserialize(fs2) as List<Organization>;
+                fs2.Close();
+            }
 
             Console.WriteLine("1 - Зарегистрироваться как физическое лицо");
             Console.WriteLine("2 - Зарегистрироваться как юридическое лицо");
-            Console.WriteLine("3 - Сделать вывод записей из списка юр. лиц");
-            Console.WriteLine("4 - Сделать вывод списка физ лиц. Упорядочить список физ. лиц по Фамилии, Имени, Отчеству. ");
+            Console.WriteLine("3 - Добавить контактные лица к юр лицу");
+            Console.WriteLine("4 - Сделать вывод записей из списка юр. лиц");
+            Console.WriteLine("5 - Сделать вывод списка физ лиц. Упорядочить список физ. лиц по Фамилии, Имени, Отчеству. ");
 
             byte pick = Convert.ToByte(Console.ReadLine());
 
@@ -31,12 +45,14 @@ namespace ConsoleApp1
                 case 2:
                     RegisterOrganization();
                     break;
-
                 case 3:
+                    AddContacts();
+                    break;
+                case 4:
                     PrintOrganizations();
                     break;
 
-                case 4:
+                case 5:
                     PrintPersons();
                     break;
 
@@ -47,79 +63,100 @@ namespace ConsoleApp1
             Console.ReadKey();
         }
 
-            public static void RegisterPerson()
+        public static void RegisterPerson()
+        {
+            Console.WriteLine("Автор - ");
+            string creator = Console.ReadLine();
+            Console.WriteLine("Имя - ");
+            string name = Console.ReadLine();
+            Console.WriteLine("Фамилия - ");
+            string lastName = Console.ReadLine();
+            Console.WriteLine("ИИН - ");
+            string iin = Console.ReadLine();
+
+            FileStream fs = new FileStream(personsPath, FileMode.Open);
+            people.Add(new Person(creator, name, lastName, iin));
+            formatter.Serialize(fs, people);
+            fs.Close();
+        }
+
+        static void RegisterOrganization()
+        {
+            Console.WriteLine("ИИН - ");
+            string iin = Console.ReadLine();
+            Console.WriteLine("Автор - ");
+            string creator = Console.ReadLine();
+            Console.WriteLine("Имя организации - ");
+            string orgname = Console.ReadLine();
+
+            FileStream fs2 = new FileStream(orgsPath, FileMode.Open);
+            organization.Add(new Organization(orgname, creator, iin));
+            formatter.Serialize(fs2, organization);
+            fs2.Close();
+        }
+        static void AddContacts()
+        {
+            Console.WriteLine("Введите имя организации");
+            string org = Console.ReadLine();
+            int index = organization.FindIndex(item => item.OrganizationName == org);
+            Console.WriteLine("Автор - ");
+            string creator = Console.ReadLine();
+            Console.WriteLine("Имя - ");
+            string name = Console.ReadLine();
+            Console.WriteLine("Фамилия - ");
+            string lastName = Console.ReadLine();
+            Console.WriteLine("ИИН");
+            string iin = Console.ReadLine();
+            Console.WriteLine("Введите номер");
+            string phone = Console.ReadLine();
+            if (phone.Length == 11)
             {
-                Console.WriteLine("Автор - ");
-                string creator = Console.ReadLine();
-                Console.WriteLine("Имя - ");
-                string name = Console.ReadLine();
-                Console.WriteLine("Фамилия - ");
-                string lastName = Console.ReadLine();
-                Console.WriteLine("ИИН - ");
-                string iin = Console.ReadLine();
-                FileStream fs = new FileStream(path, FileMode.Append);
-                people.Add(new Person(creator, name, lastName, iin));
-                formatter.Serialize(fs, people);
-                fs.Close();
+                organization[index].ContactPhone = phone;
+               //organization[index].contactsList = (new Person(creator, name, lastName, iin));
             }
-
-            static void RegisterOrganization()
+            else throw new ArgumentException("Вы ввели не валидный номер телефона");
+            if ((creator != null) && (name != null) && (lastName != null))
             {
-                Console.WriteLine("ИИН - ");
-                string iin = Console.ReadLine();
-                Console.WriteLine("Автор - ");
-                string creator = Console.ReadLine();
-                Console.WriteLine("Имя организации - ");
-                string orgname = Console.ReadLine();
+                organization[index].contacts.Add(new Person(creator, name, lastName, iin));
+            }
+            FileStream fs2 = new FileStream(orgsPath, FileMode.Open);
+            formatter.Serialize(fs2, organization);
+            fs2.Close();
+        }
 
-                organization.Add(new Organization(orgname, creator, iin));
-
-                using (StreamWriter sw = new StreamWriter(path, true, System.Text.Encoding.Default))
+        static void PrintOrganizations()
+        {
+            using (FileStream fs = new FileStream(orgsPath, FileMode.Open))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\tОрганизация\tГлава\tТелефон\t \tДата изменения");
+                Console.WriteLine();
+                foreach (var item in organization)
                 {
-                    foreach (var item in organization)
+                    Console.WriteLine($"\t{item.OrganizationName}\t \t{item.Creator}\t{item.ContactPhone}\t {item.DateOfChange}");
+                    foreach (var item_ in item.contacts)
                     {
-                        sw.Write($"{item.Creator}\t");
-                        sw.Write($"{item.OrganizationName}\t");
-                        sw.Write($"{item.Id}\t");
-                        sw.Write($"{item.Iin}\t");
-                        sw.Write($"{item.DateOfCreaction}\t");
+                        Console.WriteLine();
+                        Console.WriteLine("\tКонтактные данные");
+                        Console.WriteLine($"\t{item_.Name}\t \t{item_.LastName}");
                     }
                 }
             }
-
-            static void PrintOrganizations()
-            {
-                //десериализация файла
-                using (FileStream fs = new FileStream(path, FileMode.Open))
-                {
-                    people = (List<Person>)formatter.Deserialize(fs);
-                    foreach (Person item in people)
-                    {
-                        Console.WriteLine($"Имя - {item.Name} Фамилия - {item.LastName}");
-                    }
-                }
-
-        
-            }
+        }
         static void PrintPersons()
         {
-            using (FileStream fs = new FileStream(path, FileMode.Open))
+            using (FileStream fs = new FileStream(personsPath, FileMode.Open))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\tИМЯ \t Фамилия");
-                List<Person> list1 = (List<Person>)formatter.Deserialize(fs);
-                foreach (var item in list1)
+                foreach (var item in people)
                 {
+                    Console.WriteLine();
                     Console.Write($"\t{item.Name}\t");
                     Console.Write($"{item.LastName}\t");
-                    Console.WriteLine();
                 }
-                fs.Close();
             }
         }
-
-            
-        
     }
 }
 

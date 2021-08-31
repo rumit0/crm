@@ -13,8 +13,6 @@ namespace ConsoleApp1
         public string Iin { get; set; }
         public DateTime DateOfCreaction { get; set; }
         public string Creator { get; set; } 
-        public DateTime DateOfChange { get; set; } 
-        public string ChangeAuthor { get; private set; }
 
         public CounterAgent(string creator, string iin)
         {
@@ -27,9 +25,5 @@ namespace ConsoleApp1
             }
             else throw new ArgumentException("ИИН должен состоять из 12 символов!");
         }   
-
-
-
-
     }
 }
