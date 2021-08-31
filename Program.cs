@@ -112,7 +112,6 @@ namespace ConsoleApp1
             if (phone.Length == 11)
             {
                 organization[index].ContactPhone = phone;
-               //organization[index].contactsList = (new Person(creator, name, lastName, iin));
             }
             else throw new ArgumentException("Вы ввели не валидный номер телефона");
             if ((creator != null) && (name != null) && (lastName != null))
