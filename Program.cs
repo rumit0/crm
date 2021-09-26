@@ -27,7 +27,7 @@ namespace ConsoleApp1
                 organization = formatter.Deserialize(fs2) as List<Organization>;
                 fs2.Close();
             }
-
+            Console.WriteLine("Выберите одну из команд");
             Console.WriteLine("1 - Зарегистрироваться как физическое лицо");
             Console.WriteLine("2 - Зарегистрироваться как юридическое лицо");
             Console.WriteLine("3 - Добавить контактные лица к юр лицу");
@@ -130,6 +130,7 @@ namespace ConsoleApp1
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\tОрганизация\tГлава\tТелефон\t \tДата изменения");
                 Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.White;
                 foreach (var item in organization)
                 {
                     Console.WriteLine($"\t{item.OrganizationName}\t \t{item.Creator}\t{item.ContactPhone}\t {item.DateOfChange}");
@@ -138,6 +139,7 @@ namespace ConsoleApp1
                         Console.WriteLine();
                         Console.WriteLine("\tКонтактные данные");
                         Console.WriteLine($"\t{item_.Name}\t \t{item_.LastName}");
+                        Console.WriteLine();
                     }
                 }
             }
